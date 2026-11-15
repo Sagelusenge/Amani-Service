@@ -30,9 +30,15 @@ déjà créés avant toute reprise. Ne pas lancer automatiquement à chaque dém
    Reconstruire le frontend après chaque changement de cette variable.
 6. Vérifier `/api/health`, les services publics, puis la connexion administrateur.
 
-Le backend utilise un disque de 1 Go monté sur `/var/data/uploads` pour conserver
-les fichiers téléversés. Le plan backend `0.5c-512mb` et le disque sont payants ;
-vérifier le prix affiché par Render avant activation. Le frontend est un site statique.
+Le backend utilise le plan `free`, sans disque persistant. Le frontend est un site
+statique gratuit, dans les quotas Render. Le backend se met en veille après 15 minutes
+sans trafic et le réveil peut prendre environ une minute.
+
+Attention : les fichiers téléversés dans `uploads` sont temporaires et disparaissent
+lors des redémarrages, mises en veille ou redéploiements. Pour les conserver, il faut
+ajouter un stockage externe durable avant d’utiliser les téléversements en production.
+Les données MySQL restent sur Aiven. Vérifier séparément le plan Aiven : un essai
+gratuit de 30 jours ne constitue pas une offre gratuite permanente.
 
 Les données locales et le contenu de `backend/uploads` ne sont pas publiés dans Git.
 Une migration des données locales nécessite un export/import distinct et la copie
