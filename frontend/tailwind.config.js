@@ -1,0 +1,1 @@
+export default {content:['./index.html','./src/**/*.{js,jsx}'],theme:{extend:{colors:{navy:'#142b45',ink:'#0b1c30',gold:'#b39561',paper:'#f8f9ff',soft:'#eaf0fa'},fontFamily:{sans:['Inter','sans-serif'],display:['Plus Jakarta Sans','sans-serif']},boxShadow:{soft:'0 12px 45px rgba(20,43,69,.07)'}}},plugins:[]};

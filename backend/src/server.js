@@ -1,0 +1,17 @@
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import 'dotenv/config';
+import {router} from './routes.js';
+import {initializeAccess} from './access.js';
+await initializeAccess();
+const app=express();
+if(process.env.TRUST_PROXY_HOPS)app.set('trust proxy',Number(process.env.TRUST_PROXY_HOPS));
+app.disable('x-powered-by');app.use(helmet());app.use(cors({origin:(process.env.FRONTEND_ORIGIN||'http://localhost:5173').split(',')}));app.use(express.json({limit:'1mb'}));
+app.use('/api/auth/login',rateLimit({windowMs:15*60*1000,limit:30,standardHeaders:'draft-7',legacyHeaders:false}));
+app.use('/api/public/contact',rateLimit({windowMs:15*60*1000,limit:15,standardHeaders:'draft-7',legacyHeaders:false}));
+app.use('/api/files',express.static(process.env.UPLOAD_DIR||'uploads',{dotfiles:'deny',setHeaders:res=>{res.setHeader('Cross-Origin-Resource-Policy','cross-origin');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Content-Security-Policy',"default-src 'none'; sandbox")}}));
+app.use('/api',router);
+app.use((err,req,res,next)=>{console.error(err);const status=err.name==='ZodError'?400:err.code==='ER_DUP_ENTRY'?409:err.code==='ER_NO_REFERENCED_ROW_2'?400:(err.status||500);res.status(status).json({error:status===400?'Données invalides ou référence liée inexistante':status===409?'Un enregistrement avec cette valeur existe déjà':process.env.NODE_ENV==='production'?'Erreur serveur':err.message});});
+const port=Number(process.env.PORT||4000);app.listen(port,'0.0.0.0',()=>console.log(`AMANI API : http://localhost:${port}`));
