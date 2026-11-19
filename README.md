@@ -20,6 +20,8 @@ Ce ZIP comprend un **projet exécutable en développement** (pas un programme Wi
 
    Sous Windows (PowerShell), on peut aussi utiliser MySQL Workbench : **File > Open SQL Script**, exécuter toute la requête.
 
+   Pour une base déjà créée avec une version antérieure du schéma, exécuter également `database/03_fix_contract_amount.sql` dans cette base. La migration corrige le nom de la colonne du montant des contrats et conserve les montants existants.
+
 2. Créer l'utilisateur SQL dans MySQL Workbench avec `database/02_create_app_user.sql` **après avoir remplacé `CHANGE_ME`**. Modifier l'identifiant MySQL si nécessaire. Le fichier utilise `amani_app@localhost`.
 
 3. Backend :
