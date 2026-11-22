@@ -34,9 +34,13 @@ Le backend utilise le plan `free`, sans disque persistant. Le frontend est un si
 statique gratuit, dans les quotas Render. Le backend se met en veille après 15 minutes
 sans trafic et le réveil peut prendre environ une minute.
 
-Attention : les fichiers téléversés dans `uploads` sont temporaires et disparaissent
-lors des redémarrages, mises en veille ou redéploiements. Pour les conserver, il faut
-ajouter un stockage externe durable avant d’utiliser les téléversements en production.
+Les nouveaux fichiers téléversés (8 Mo maximum) sont conservés dans la table
+`stored_uploads` de MySQL. Ils survivent aux redémarrages et aux déploiements Render.
+La table est créée automatiquement sans modifier les tables métier existantes.
+Les anciennes URL sont conservées ; les anciens fichiers déjà perdus doivent être
+restaurés depuis une copie originale. Inclure `stored_uploads` dans les sauvegardes
+Aiven et surveiller la capacité de la base. Pour de gros volumes, préférer un stockage objet.
+
 Les données MySQL restent sur Aiven. Vérifier séparément le plan Aiven : un essai
 gratuit de 30 jours ne constitue pas une offre gratuite permanente.
 
@@ -55,3 +59,32 @@ npm --prefix frontend run build
 
 Le fichier `.deploy/` contient uniquement des éléments locaux de déploiement,
 potentiellement secrets, et reste exclu du versionnement.
+
+## Chargement public et domaine
+
+La compilation du frontend récupère les données publiques via `VITE_API_URL` et
+copie les images publiées dans le site statique. Les compteurs, services, paramètres
+et actualités s'affichent depuis cet instantané, puis sont rafraîchis en arrière-plan.
+Les changements administratifs sont donc visibles dès que l'API répond. Un nouveau
+build du frontend renouvelle l'instantané pour les premières visites pendant une
+mise en veille. Les dernières réponses publiques sont aussi conservées 24 heures
+au maximum dans le navigateur ; un build plus récent prend la priorité.
+Une erreur des endpoints publics fait échouer le build plutôt que publier des
+chiffres inventés. Une image ancienne absente est signalée dans le journal du build.
+L'administration et ses graphiques sont chargés séparément du site public.
+
+Le plan gratuit conserve son délai de réveil pour les opérations interactives
+(connexion, formulaire, nouveaux contenus). L'élimination de cette veille nécessite
+un plan de service toujours actif ; ne pas changer le plan sans accord sur son coût.
+
+Domaine prévu : `https://amani-services.eu` (origine autorisée par l'API, ainsi que
+`https://www.amani-services.eu`). L'association Render et la zone DNS OVH doivent
+être configurées indépendamment du code :
+
+- Render / amani-services-web / Settings / Custom Domains : ajouter `amani-services.eu`.
+- OVH / Zone DNS : A de la racine vers `216.24.57.1`.
+- OVH / Zone DNS : CNAME de `www` vers `amani-services-web.onrender.com.`.
+- Retirer les AAAA de ces deux noms s'ils existent, sans modifier les entrées mail.
+- Dans Render, vérifier le domaine puis contrôler le certificat HTTPS et les deux noms.
+
+Valeurs vérifiées dans https://render.com/docs/configure-other-dns le 22 novembre 2026.
